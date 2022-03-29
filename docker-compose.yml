@@ -1,0 +1,31 @@
+version: '3'
+services:
+  nginx-proxy:
+    build:
+      context: ./nginx/proxy
+    container_name: nginx-proxy
+    image: jwilder/nginx-proxy
+    restart: always
+    privileged: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: letsencrypt
+    environment:
+      - DEFAULT_EMAIL=nitkc.programming.circle@gmail.com
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - acme:/etc/acme.sh
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
